@@ -10,6 +10,7 @@ Functional Simulation: Incisive Simulator (ncvlog, ncelab, ncsim)
 
 Synthesis: Genus
 
+
 ### Step 1: Getting Started
 
 Synthesis requires three files as follows,
@@ -38,12 +39,185 @@ The Liberty files are present in the library path,
 
 • Genus Script file with .tcl file Extension commands are executed one by one to synthesize the netlist.
 
-Synthesis RTL Schematic :
+## traffic_light_controller_code
 
-Area report:
+`timescale 1 ns / 1 ps
 
-Power Report:
+module TrafficLight(input clk, //LED_NS represent the North-South LEDs
 
-Result:
+		    input rst, //LED_WE represent the West-East LEDs
+
+		    output reg [2:0] LED_NS, LED_WE);
+
+/*Let 100 = Red
+
+      010 = Yellow
+
+      001 = Green 
+
+We have 6 different states, defining them below */
+
+parameter S0 = 6'b000001,   //When NS is green and EW is red
+
+	  S1 = 6'b000010,   //When NS is yellow and EW is red
+
+	  S2 = 6'b000100,   //When NS is red and EW is red
+
+	  S3 = 6'b001000,   //When NS is red and EW is green
+
+	  S4 = 6'b010000,   //When NS is red and EW is yellow
+
+	  S5 = 6'b100000;   //When NS is red and EW is red
+
+//Then the cycle repeats
+
+reg [5:0] state;
+
+reg [3:0] count;
+
+//Defining transition of states
+
+always@(posedge clk or posedge rst)
+
+begin
+
+if(rst) begin    //Active HIGH reset
+
+state <= S0;
+
+count <= 0; end
+
+else 
+
+begin
+
+case(state)
+
+S0: begin 
+
+	if(count == 4'd14)
+
+	begin count <= 0;
+
+	state <= S1; end
+
+	else begin 
+
+	count <= count + 1; state <= S0; end end
+
+S1: begin 
+
+	if(count == 4'd2)
+
+	begin count <= 0;
+
+	state <= S2; end
+
+	else begin 
+
+	count <= count + 1; state <= S1; end end
+
+S2: begin 
+
+	if(count == 4'd2)
+
+	begin count <= 0;
+
+	state <= S3; end
+
+	else begin 
+
+	count <= count + 1; state <= S2; end end
+
+S3: begin 
+
+	if(count == 4'd14)
+
+	begin count <= 0;
+
+	state <= S4; end
+
+	else begin 
+
+	count <= count + 1; state <= S3; end end
+
+S4: begin 
+
+	if(count == 4'd2)
+
+	begin count <= 0;
+
+	state <= S5; end
+
+	else begin 
+
+	count <= count + 1; state <= S4; end end
+
+S5: begin 
+
+	if(count == 4'd2)
+
+	begin count <= 0;
+
+	state <= S0; end
+
+	else begin 
+
+	count <= count + 1; state <= S5; end end
+
+endcase
+
+end
+
+end
+
+/*    100 = Red
+      010 = Yellow
+      001 = Green     */
+
+//Output of LEDs//
+
+always@(*)
+
+begin
+
+case(state) 
+
+S0: begin LED_NS = 3'b001;  LED_WE = 3'b100; end
+
+S1: begin LED_NS = 3'b010;  LED_WE = 3'b100; end
+
+S2: begin LED_NS = 3'b100;  LED_WE = 3'b100; end
+
+S3: begin LED_NS = 3'b100;  LED_WE = 3'b001; end
+
+S4: begin LED_NS = 3'b100;  LED_WE = 3'b010; end
+
+S5: begin LED_NS = 3'b100;  LED_WE = 3'b100; end
+
+endcase
+
+end
+
+endmodule
+
+
+
+## Synthesis RTL Schematic :
+
+![WhatsApp Image 2024-11-22 at 21 10 31_7e65596f](https://github.com/user-attachments/assets/1c4b24e4-c4b0-4725-9d66-79d0efb32961)
+
+
+## Area report:
+![WhatsApp Image 2024-11-22 at 21 11 00_28d7d7f9](https://github.com/user-attachments/assets/87319d1e-3c24-40ea-adc7-ecbb562b993c)
+
+
+
+## Power Report:
+![WhatsApp Image 2024-11-22 at 21 11 53_4be209a1](https://github.com/user-attachments/assets/7f9fe2a8-e0cc-4c97-92d5-14e1912b1124)
+
+
+
+## Result:
 
 The generic netlist of Traffic Light Controller has been created, and area, power reports have been tabulated and generated using Genus.
